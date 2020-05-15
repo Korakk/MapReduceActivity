@@ -10,6 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChainMapperUtilities {
 
@@ -41,7 +43,13 @@ public class ChainMapperUtilities {
             JSONObject jsonObject = new JSONObject(data);
             JSONObject entities = (JSONObject) jsonObject.get("entities");
             JSONObject filteredData = new JSONObject();
-            filteredData.append("hashtags", entities.get("hashtags"));
+            JSONArray hashtags = (JSONArray) entities.get("hashtags");
+            List<String> hashtagsList = new ArrayList<>();
+            for (Object hashtag : hashtags){
+                JSONObject tags = (JSONObject) hashtag;
+                hashtagsList.add((String) tags.get("text"));
+            }
+            filteredData.append("hashtags", hashtagsList);
             filteredData.append("text", jsonObject.get("text"));
             filteredData.append("lang", jsonObject.get("lang"));
             Text filteredNewKey = new Text(filteredData.toString());
@@ -53,9 +61,11 @@ public class ChainMapperUtilities {
         public void map(Text newKey, LongWritable value, Context context) throws IOException, InterruptedException {
             String data = newKey.toString();
             JSONObject jsonObject = new JSONObject(data);
-            JSONArray langs = (JSONArray) jsonObject.get("lang");
-            if(langs.toString().contains("\"es\"")){
-                context.write(newKey, value);
+            if(jsonObject.has("lang")){
+                JSONArray langs = (JSONArray) jsonObject.get("lang");
+                if(langs.toString().contains("\"es\"")){
+                    context.write(newKey, value);
+                }
             }
         }
     }

@@ -8,20 +8,20 @@ import org.json.JSONObject;
 
 import javax.swing.text.TabExpander;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HashtagUtilities {
 
-    public static class CountHashtags extends Mapper<Object, Text, Text, LongWritable> {
-        public void map(Object newKey, Text value, Context context) throws IOException, InterruptedException {
-            String data = value.toString();
+    public static class CountHashtags extends Mapper<Text, LongWritable, Text, LongWritable> {
+        public void map(Text newKey, LongWritable value, Context context) throws IOException, InterruptedException {
+            String data = newKey.toString();
             Text elem = new Text();
             JSONObject jsonData = new JSONObject(data);
-            JSONObject entities = (JSONObject) jsonData.get("entities");
-            JSONArray hashTags = (JSONArray) entities.get("hashtags");
+            JSONArray hashTags = (JSONArray) jsonData.get("hashtags");
             for (Object hashTag : hashTags) {
-                JSONObject jsonHashtag = (JSONObject) hashTag;
-
-                elem.set(new Text(jsonHashtag.get("text").toString()));
+                JSONArray hashtags = (JSONArray) hashTag;
+                elem.set(new Text(hashtags.getString(0)));
                 context.write(elem, new LongWritable(1L));
             }
         }
