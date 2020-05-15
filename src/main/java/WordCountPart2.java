@@ -5,6 +5,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.chain.Chain;
+import org.apache.hadoop.mapreduce.lib.chain.ChainMapper;
 import org.apache.hadoop.mapreduce.lib.chain.ChainReducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.map.RegexMapper;
@@ -21,11 +22,15 @@ public class WordCountPart2 {
         fs.delete(outputPath, true);
         Job job = Job.getInstance(conf, "Remove-Filter-Tweets");
         job.setJarByClass(WordCountPart2.class);
-        ChainMapperUtilities.chainData(job, ChainMapperUtilities.LowerCaseMapper.class);
+        ChainMapper.addMapper(job, ChainMapperUtilities.LowerCaseMapper.class, Object.class, Text.class,
+                Text.class, LongWritable.class, new Configuration(false));
+
         ChainMapperUtilities.chainData(job, ChainMapperUtilities.JsonSelectionMapper.class);
         ChainMapperUtilities.chainData(job, ChainMapperUtilities.FilterFieldsMap.class);
         ChainMapperUtilities.chainData(job, ChainMapperUtilities.FilterLang.class);
         ChainMapperUtilities.groupData(job, LongSumReducer.class);
+
+
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(LongWritable.class);
         FileInputFormat.addInputPath(job, new Path(args[0]));
